@@ -9,7 +9,7 @@ var SingletonLibrary;
     if(instance) return instance;
     instance.this;
 
-    this.bookShelf = new Array();
+    this.bookShelf = new Array();  //Use = []
 
     return instance;
   }
@@ -85,25 +85,10 @@ Library.prototype.robustSearch = function(title, author, numPages, pubDate) {
   return filteredArr;
 };
 
-Library.prototype.searchBook = function(title, author, numPages, pubDate) {
-  if(title && author=='' && numPages=='' && pubDate=='') {
-    var filteredArr = this.bookShelf.filter(function(item) {return item.title == title;});
-  };
-  if(title && author && numPages=='' && pubDate=='') {
-    var filteredArr = this.bookShelf.filter(function(item) {return item.title == title || item.author == author;});
-  };
-  if(title && author && numPages && pubDate=='') {
-    var filteredArr = this.bookShelf.filter(function(item) {return item.title == title || item.author == author || item.numPages == numPages;});
-  };
-  if(title && author && numPages && pubDate=='') {
-    var filteredArr = this.bookShelf.filter(function(item) {return item.title == title || item.author == author || item.numPages == numPages || item.pubDate == pubDate;});
-  };
-  return filteredArr;
-};
-
 Library.prototype.addBook = function (book) {
-  //console.log('before add',this.bookShelf);
-  if(this.searchBook(book.title,'','','').length) {
+  //check the length of returned array of titles equal to book.title; book found if length is > 0
+  //why can't check without length
+  if(this.bookShelf.filter(function(item) {return item.title.toLowerCase()==book.title.toLowerCase();}).length) {
     console.log('book already exist.',this.bookShelf);
     return false;
   } else {
@@ -111,18 +96,12 @@ Library.prototype.addBook = function (book) {
     console.log('book added.',this.bookShelf);
     return true;
   };
-  // if(this.searchBook(book.title)) {
-  //   this.bookShelf.push(book);
-  //   console.log('added',this.bookShelf);
-  // }
-  //console.log('after add',this.bookShelf);
-
 };
 
 Library.prototype.removeBookByTitle = function (title) {
   var currentBookShelfLength = this.bookShelf.length;
   //var filteredArr = this.bookShelf.filter(item => item.title != title);  ES6
-  var filteredArr = this.bookShelf.filter(function(item) {return item.title != title;});
+  var filteredArr = this.bookShelf.filter(function(item) {return item.title.toLowerCase() != title.toLowerCase();});
 
   if(filteredArr.length == currentBookShelfLength) {
     console.log('No book removed by title.');
@@ -137,7 +116,7 @@ Library.prototype.removeBookByTitle = function (title) {
 Library.prototype.removeBookByAuthor = function(author) {
   var currentBookShelfLength = this.bookShelf.length;
   //var filteredArr = this.bookShelf.filter(item => item.author != author);  ES6
-  var filteredArr = this.bookShelf.filter(function(item) {return item.author != author;});
+  var filteredArr = this.bookShelf.filter(function(item) {return item.author.toLowerCase() != author.toLowerCase();});
   if(filteredArr.length == currentBookShelfLength) {
     console.log('No book removed by author.');
     return false;
@@ -150,7 +129,7 @@ Library.prototype.removeBookByAuthor = function(author) {
 
 Library.prototype.getRandomBook = function() {
   if(this.bookShelf.length > 0) {
-    var bookIndex = Math.floor((Math.random() * this.bookShelf.length) + 0);
+    var bookIndex = Math.floor((Math.random() * this.bookShelf.length));
     return this.bookShelf[bookIndex];
   } else {
     return null;
@@ -159,29 +138,31 @@ Library.prototype.getRandomBook = function() {
 
 Library.prototype.getBookByTitle = function(title) {
   //var filteredArr = this.bookShelf.filter(item => item.title.search(title) >= 0); ES6
-  var filteredArr = this.bookShelf.filter(function(item) {return item.title.search(title) >= 0;});
+  var filteredArr = this.bookShelf.filter(function(item) {return item.title.toLowerCase().search(title.toLowerCase()) >= 0;});
   return filteredArr;
 };
 
 Library.prototype.getBookByAuthor = function(authorName) {
   //var filteredArr = this.bookShelf.filter(item => item.author.search(authorName) >= 0); ES6
-  var filteredArr = this.bookShelf.filter(function(item) {return item.author.search(authorName) >= 0;});
+  var filteredArr = this.bookShelf.filter(function(item) {return item.author.toLowerCase().search(authorName.toLowerCase()) >= 0;});
   return filteredArr;
 };
 
 Library.prototype.addBooks = function(books) {
+  console.log(books[0]);
   var count = 0;
-  for (i=0; i<books.length; i++)
-    if(this.addBook(books[i])) {
-      count++;
-    };
-  return count;
+  //Following works similar to forEach
+  // for (var i=0; i<books.length; i++)
+  //   if(this.addBook(books[i])) {
+  //     count++;
+  //   };
+  // return count;
 
-  //context of forEach is different resulting in this.addBook undefined; research how to fix
-  // books.forEach(function(item) {
-  //   if(this.addBook(item)) count++;
-  //   return count;
-  // };
+  //context of forEach is different resulting in this.addBook undefined
+  //assigning this to local variable and using local variable solves the error
+  var localThis = this;
+  books.forEach(function(item) {if(localThis.addBook(item)) count++;});
+  return count;
 
 };
 
@@ -189,7 +170,7 @@ Library.prototype.getAuthors = function() {
   if(this.bookShelf.length > 0) {
     //pull out all authors from currentBookShelfLength
     var authorList = [];
-    for (i=0; i<this.bookShelf.length; i++)
+    for (var i=0; i<this.bookShelf.length; i++)
         authorList.push(this.bookShelf[i].author);
     //console.log(authorList);
 
@@ -197,10 +178,10 @@ Library.prototype.getAuthors = function() {
     uniqueAuthorArr.push(authorList.pop());
     //console.log(uniqueAuthorArr);
     //console.log('authorList.length',authorList.length);
-    for (i=authorList.length-1; i>=0; i--) {
+    for (var i=authorList.length-1; i>=0; i--) {
       var found = false;
       //var testName = this.bookShelf[i].author;
-      for (j=0; j<uniqueAuthorArr.length; j++) {
+      for (var j=0; j<uniqueAuthorArr.length; j++) {
         //console.log('authorList[i]',authorList[i],'uniqueAuthorArr[j]',uniqueAuthorArr[j]);
         if (authorList[i] == uniqueAuthorArr[j])
           found = true;
@@ -214,7 +195,7 @@ Library.prototype.getAuthors = function() {
 
 Library.prototype.getRandomAuthorName = function() {
   if(this.bookShelf.length > 0) {
-    var bookIndex = Math.floor((Math.random() * this.bookShelf.length) + 0);
+    var bookIndex = Math.floor((Math.random() * this.bookShelf.length));
     return this.bookShelf[bookIndex].author;
   } else {
     return null;
@@ -242,11 +223,11 @@ document.addEventListener("DOMContentLoaded", function(e){
 //begin unit test for addBook
 var bookInst = new Book('test','bill',105,new Date("sep 17 2018 3:41:05"));
 var LibInst = new Library();
-var AnotherLibInst = new Library();
 LibInst.addBook(bookInst);
 var anotherBook = new Book('test2','bill',950,new Date());
 LibInst.addBook(anotherBook);
 //end unit test for addBook
+//var AnotherLibInst = new Library();
 
 //unit test for searchBook
 //console.log('unit test for searchBook',LibInst.searchBook('test','bill','',''));
@@ -263,14 +244,15 @@ LibInst.addBook(anotherBook);
 //console.log('unit test for getRamdomBook',LibInst.getRandomBook());
 
 //unit test for getBookByTitle
-//console.log(LibInst.getBookByTitle('z'));
+console.log('getBookByTitle ',LibInst.getBookByTitle('Test'));
 
 //unit test for getBookByAuthor
 //console.log(LibInst.getBookByAuthor('z'));
 
 ////////////////////////////////////////////////
 //unit test for addBooks
-//console.log(LibInst.addBooks([{'title:book1','author:joe'},{'title:book2','author:mary'}]));
+console.log(LibInst.addBooks([{title:'book1',author:'joe'},{title:'book2',author:'mary'}]));
+//console.log(LibInst.addBooks([new Book('book1','joe'), new Book('book2','mary')]));
 var book1 = new Book('book1','joe',500,new Date(10000));
 var book2 = new Book('book2','amy');
 var book3 = new Book('book3','sam');

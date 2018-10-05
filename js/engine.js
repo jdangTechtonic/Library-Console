@@ -1,5 +1,5 @@
 function Library() {
-  this.bookShelf = new Array();
+  this.bookShelf = new Array(); //Use = []
 };
 
 var SingletonLibrary;
@@ -87,7 +87,7 @@ Library.prototype.robustSearch = function(title, author, numPages, pubDate) {
 
 Library.prototype.addBook = function (book) {
   //check the length of returned array of titles equal to book.title; book found if length is > 0
-  //why can't check without length
+  //why can't check without length-because empty array is truthy
   if(this.bookShelf.filter(function(item) {return item.title.toLowerCase()==book.title.toLowerCase();}).length) {
     console.log('book already exist.',this.bookShelf);
     return false;
@@ -244,10 +244,11 @@ LibInst.addBook(anotherBook);
 //console.log('unit test for getRamdomBook',LibInst.getRandomBook());
 
 //unit test for getBookByTitle
-console.log('getBookByTitle ',LibInst.getBookByTitle('Test'));
+console.log('getBookByTitle ',LibInst.getBookByTitle('est'));
 
 //unit test for getBookByAuthor
-//console.log(LibInst.getBookByAuthor('z'));
+console.log(LibInst.bookShelf);
+console.log('getBookByAuthor ',LibInst.getBookByAuthor('l'));
 
 ////////////////////////////////////////////////
 //unit test for addBooks
